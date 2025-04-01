@@ -10,13 +10,15 @@ function Edit-AudioVideoComment {
 	[System.Reflection.Assembly]::LoadFrom((Resolve-Path "TagLibSharp.dll")) | Out-Null
 	$File = [TagLib.File]::Create((Resolve-Path $Path))
 
-	$File.Tag.Comment = $Include -join ' | ';
+	$File.Tag.Comment = $Include -join '|';
 	Start-Sleep -Seconds 2
 	$File.Save()
 
-	$Expected = $Include -join ' | '
-	$Saved = $File.Tag.Comment
-	if ($Expected -ne $Saved) {
+	$SavedFile = [TagLib.File]::Create((Resolve-Path $Path))
+	$Expected = $Include -join '|'
+	$Saved = $SavedFile.Tag.Comment
+
+	if ($Saved -ne $Expected) {
 		throw "METADATA NOT PROPERLY SAVED"
 	}
 }
