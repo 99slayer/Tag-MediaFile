@@ -6,12 +6,10 @@ function Edit-AudioVideoComment {
 		[string[]]$Exclude
 	)
 	if (!$Include -and !$Exclude) {return}
-
-	[System.Reflection.Assembly]::LoadFrom((Resolve-Path "TagLibSharp.dll")) | Out-Null
 	$File = [TagLib.File]::Create((Resolve-Path $Path))
 
 	$File.Tag.Comment = $Include -join '|';
-	Start-Sleep -Seconds 2
+	Start-Sleep -Milliseconds 200
 	$File.Save()
 
 	$SavedFile = [TagLib.File]::Create((Resolve-Path $Path))

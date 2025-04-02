@@ -13,13 +13,8 @@ function Tag-MediaFile {
 		[switch]$Copy
 	)
 	Get-ChildItem -Path ".\util" | ForEach-Object {. $($_.FullName)}
+	[System.Reflection.Assembly]::LoadFrom((Resolve-Path "TagLibSharp.dll")) | Out-Null
 	$Path = [IO.Path]::GetFullPath(($Path))
-	$Files = Get-ChildItem -Path $Path -File | Sort-Object -Descending
-
-	if (!$Files) {
-		Write-Warning "NO FILES FOUND"
-		return;
-	}
 
 	$ToJpg = @(
 		".bmp", ".gif", ".pbm", ".pgm",
@@ -50,6 +45,13 @@ function Tag-MediaFile {
 		$FileGroup | Move-Item -Destination "$($Path)\converted"
 	}
 
+	$Files = Get-ChildItem -Path $Path -File | Sort-Object -Descending
+
+	if (!$Files) {
+		Write-Warning "NO FILES FOUND"
+		return;
+	}
+
 	foreach ($File in $Files) {
 		if (
 			$File.Extension -eq ".jpg" -or 
@@ -74,13 +76,15 @@ function Tag-MediaFile {
 		Set-DesktopWindow -Name $File.Name -Height 500 -Width 500 -Left 1910 -Top 0
 		[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
 
-		$FileData = Get-FileMetaData $File
+		$FileData = [TagLib.File]::Create((Resolve-Path $File))
+		if ($FileType -eq "image") {$Tags = $FileData.ImageTag.Keywords}
+
 		$UnwantedTags = ''
 		$NewTags = ''
 
-		if ($FileData.Tags) {
+		if ($Tags) {
 			Write-Host "Existing tags:"
-			Write-Host "$($FileData.Tags)"
+			Write-Host "$($Tags)"
 			$RemoveTag = Read-Host -Prompt "Would you like to remove any tags? Y/N"
 
 			if ($RemoveTag -eq 'y') {
@@ -90,6 +94,7 @@ function Tag-MediaFile {
 
 		$NewTags = Read-Host -Prompt 'ADD <tag>;<tag>'
 		Set-DesktopWindow -Name $File.Name -State Close
+		Start-Sleep -Milliseconds 200
 
 		$OriginalName = $File.Name
 		try {
@@ -110,6 +115,8 @@ function Tag-MediaFile {
 			Write-Error $_.Exception.Message
 
 			Set-DesktopWindow -Name $File.Name -State Close
+			Start-Sleep -Milliseconds 200
+
 			Remove-Item -Path $File
 			Rename-Item -Path "$($Path)\$($FileBackup)" -NewName $OriginalName
 		}
