@@ -109,6 +109,7 @@ function Tag-MediaFile {
 			Write-Warning "Problem editing $($File.Name)"
 			Write-Error $_.Exception.Message
 
+			Set-DesktopWindow -Name $File.Name -State Close
 			Remove-Item -Path $File
 			Rename-Item -Path "$($Path)\$($FileBackup)" -NewName $OriginalName
 		}
