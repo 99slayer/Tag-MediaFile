@@ -2,7 +2,6 @@
 	An interactive file tagging function.
 	Edits image file tags.
 	Edits video/audio file comments.
-	TEST TEST TEST
 #>
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -22,11 +21,10 @@ function Tag-MediaFile {
 		return;
 	}
 
-	$ImageExtensions = @(
-		".bmp", ".gif", ".jpeg", ".jpg", 
-		".pbm", ".pgm", ".ppm", ".pnm", 
-		".pcx", ".png", ".tiff", ".dng", 
-		".svg"
+	$ToJpg = @(
+		".bmp", ".gif", ".pbm", ".pgm",
+		".ppm", ".pnm", ".pcx", ".png",
+		".tiff", ".dng", ".svg"
 	)
 	$AudioExtensions = @(
 		".aa", ".aax", ".aac", ".iff",
@@ -45,8 +43,18 @@ function Tag-MediaFile {
 	New-Item -Path $Path -ItemType Directory -Name tagged -ErrorAction Ignore | Out-Null
 	New-Item -Path $Path -ItemType Directory -Name converted -ErrorAction Ignore | Out-Null
 
+	# Convert to jpgs
+	foreach ($extension in $ToJpg) {
+		$FileGroup = Get-ChildItem $Path -File -Filter "*$($extension)"
+		$FileGroup | ConvertTo-Jpg
+		$FileGroup | Move-Item -Destination "$($Path)\converted"
+	}
+
 	foreach ($File in $Files) {
-		if ($File.Extension -in $ImageExtensions) {$FileType = "image"} 
+		if (
+			$File.Extension -eq ".jpg" -or 
+			$File.Extension -eq ".jpeg"
+		) {$FileType = "image"} 
 		elseif (
 			$File.Extension -in $VideoExtensions -or
 			$File.Extension -in $AudioExtensions
