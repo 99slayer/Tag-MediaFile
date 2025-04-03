@@ -10,7 +10,8 @@ function Tag-MediaFile {
 	param (
 		[Parameter(Position=0,Mandatory=$true,ValueFromPipeline)]
 		[string]$Path,
-		[switch]$Copy
+		[switch]$Copy,
+		[switch]$Secondary
 	)
 	Get-ChildItem -Path ".\util" | ForEach-Object {. $($_.FullName)}
 	[System.Reflection.Assembly]::LoadFrom((Resolve-Path "TagLibSharp.dll")) | Out-Null
@@ -71,10 +72,13 @@ function Tag-MediaFile {
 		Copy-Item $File.FullName -Destination "$($Path)\$($FileBackup)"
 
 		Start-Process $File
-		Start-Sleep -Milliseconds 300
+		Start-Sleep -Milliseconds 200
 
-		Set-DesktopWindow -Name $File.Name -Height 500 -Width 500 -Left 1910 -Top 0
-		[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")
+		$Monitors = Get-DesktopMonitors
+		$Monitor = If ($Secondary) {$Monitors[0]} Else {$Monitors[1]}
+
+		Set-DesktopWindow -Name $File.Name -Top $Monitor.PositionTop -Left $Monitor.PositionLeft
+		if ($Secondary) {[System.Windows.Forms.SendKeys]::SendWait("%{TAB}")}
 
 		$FileData = [TagLib.File]::Create((Resolve-Path $File))
 		if ($FileType -eq "image") {$Tags = $FileData.ImageTag.Keywords}
