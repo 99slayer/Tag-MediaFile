@@ -1,10 +1,25 @@
-<#
-	An interactive file tagging function.
-	Edits image file tags.
-	Edits video/audio file comments.
-#>
-
 Add-Type -AssemblyName System.Windows.Forms
+
+<#
+.SYNOPSIS
+An interactive script that iterates over a group of files and allows users to add tags via the terminal. The tagged files are moved into a new directory.
+
+.PARAMETER Path
+Path of the target directory.
+
+.PARAMETER Copy
+Create file copies in the target directory after the tagged files are moved.
+
+.PARAMETER Secondary
+Open files on the users secondary monitor.
+
+.NOTES
+All non-jpg image formats are converted to jpgs. The converted files are stored in their own directory.
+
+Due to certain library limitations audio and video files have their comments changed rather than their tags.
+
+Using media players other than VLC will cause problems.
+#>
 
 function Tag-MediaFile {
 	param (
